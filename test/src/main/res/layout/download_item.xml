@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:id="@+id/txv_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/imv_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp">
+    </ImageView>
+
+    <TextView
+        android:id="@+id/txv_file_name"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+        android:textSize="14sp"
+        android:gravity="center|left"
+        android:text="1212121212121212121"/>
+    </LinearLayout>
+    <com.leo.test.ui.AutofitLayout
+        android:layout_toEndOf="@+id/txv_layout"
+        android:layout_alignParentEnd="true"
+        android:layout_centerInParent="true"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        >
+    <Button
+        android:id="@+id/btn_download"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:padding="5dp"
+        android:layout_marginEnd="10dp"
+        android:text="Download" />
+    </com.leo.test.ui.AutofitLayout>
+</RelativeLayout>
