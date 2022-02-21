@@ -2,7 +2,10 @@ package com.leo.test.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "leo";
     private DownloadListAdapter adapter;
     private DownloadCallback callback;
     private List<DownloadEntry> downloadEntryList;
@@ -67,6 +71,28 @@ public class MainActivity extends AppCompatActivity {
         DownloadWatcher.getInstance().unregisterCallback(callback);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            if (item.getTitle().equals("pause all")) {
+                item.setTitle("recover all");
+                DownloadManager.getInstance().pauseAll(this);
+            } else {
+                item.setTitle("pause all");
+                DownloadManager.getInstance().recoverAll(this);
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private List getDownloadList() {
         // todo 从数据库或者网络获取数据
         List list = new ArrayList<>();
@@ -81,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private class DownloadListAdapter extends RecyclerView.Adapter<DownloadListAdapter.ViewHolder> {
         private List<DownloadEntry> list;
         private Context context;
+        private long lastTime = 0L;
 
         public DownloadListAdapter(Context context, List list) {
             this.context = context;
@@ -104,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             if (status == DownloadEntry.Status.COMPLETED) {
                 holder.btnDownload.setText("已完成");
             }
-            switch (status){
+            switch (status) {
                 case DOWNLOADING:
                 case WAIT:
                     holder.btnDownload.setText("暂停");
@@ -122,6 +149,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             holder.btnDownload.setOnClickListener(v -> {
+                if (shortClick()) {
+                    return;
+                }
                 switch (status) {
                     case DOWNLOADING:
                     case WAIT:
@@ -136,6 +166,17 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             });
+        }
+
+        private boolean shortClick() {
+            long now = System.currentTimeMillis();
+            if ((now - lastTime) < Constants.ONE_MINUTE) {
+                Log.i(TAG, "shortClick return");
+                return true;
+            } else {
+                lastTime = now;
+                return false;
+            }
         }
 
         @Override

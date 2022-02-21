@@ -1,3 +1,3 @@
 rootProject.name = "OkDownload"
-include ':app'
+include ':okdownload'
 include ':test'

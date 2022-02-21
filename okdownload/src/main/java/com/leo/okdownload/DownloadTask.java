@@ -22,6 +22,7 @@ public class DownloadTask implements Runnable {
     public void addDownload() {
         LogUtls.info("addDownload");
         entry.setStatus(DownloadEntry.Status.DOWNLOADING);
+        sendMessage(entry);
         TaskPool.getInstance().execute(this);
     }
 

@@ -7,4 +7,6 @@ public class Constants {
     public static final String CANCEL_DOWNLOAD = "cancel_download";
     public static final String RESUME_DOWNLOAD = "resume_download";
     public static final int MAX_DOWNLOAD_THREAD_SIZE = 3;
+    public static final String RECOVER_ALL = "recover_all";
+    public static final String PAUSE_ALL = "pause_all";
 }

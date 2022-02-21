@@ -21,31 +21,43 @@ public class DownloadManager {
 
 
     public void startDownload(Context context, DownloadEntry downloadEntry) {
-        Intent intent = new Intent(context,DownloadService.class);
-        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY,downloadEntry);
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY, downloadEntry);
         intent.setAction(Constants.START_DOWNLOAD);
         context.startService(intent);
     }
 
     public void pauseDownload(Context context, DownloadEntry downloadEntry) {
-        Intent intent = new Intent(context,DownloadService.class);
-        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY,downloadEntry);
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY, downloadEntry);
         intent.setAction(Constants.PAUSE_DOWNLOAD);
         context.startService(intent);
 
     }
 
     public void resumeDownload(Context context, DownloadEntry downloadEntry) {
-        Intent intent = new Intent(context,DownloadService.class);
-        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY,downloadEntry);
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY, downloadEntry);
         intent.setAction(Constants.RESUME_DOWNLOAD);
         context.startService(intent);
     }
 
     public void cancelDownload(Context context, DownloadEntry downloadEntry) {
-        Intent intent = new Intent(context,DownloadService.class);
-        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY,downloadEntry);
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.putExtra(Constants.EXTRA_DOWNLOAD_ENTRY, downloadEntry);
         intent.setAction(Constants.CANCEL_DOWNLOAD);
+        context.startService(intent);
+    }
+
+    public void recoverAll(Context context){
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(Constants.RECOVER_ALL);
+        context.startService(intent);
+    }
+
+    public void pauseAll(Context context){
+        Intent intent = new Intent(context, DownloadService.class);
+        intent.setAction(Constants.PAUSE_ALL);
         context.startService(intent);
     }
 }
