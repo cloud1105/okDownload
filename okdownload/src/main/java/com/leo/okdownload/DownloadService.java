@@ -43,7 +43,7 @@ public class DownloadService extends Service {
                 default:
                     break;
             }
-            DownloadWatcher.getInstance().updateDownloadStatus(entry);
+            DownloadWatcher.getInstance(DownloadService.this).updateDownloadStatus(entry);
         }
     };
 
@@ -97,7 +97,7 @@ public class DownloadService extends Service {
     }
 
     private void recoverAll() {
-        ArrayList<DownloadEntry> arrayList = DownloadWatcher.getInstance().queryAllRecoverableEntries();
+        ArrayList<DownloadEntry> arrayList = DownloadWatcher.getInstance(this).queryAllRecoverableEntries();
         for (DownloadEntry entry : arrayList) {
             startDownload(entry);
         }
@@ -119,7 +119,7 @@ public class DownloadService extends Service {
 
     private void changeDownloadStatus(DownloadEntry entry, DownloadEntry.Status status) {
         entry.setStatus(status);
-        DownloadWatcher.getInstance().updateDownloadStatus(entry);
+        DownloadWatcher.getInstance(this).updateDownloadStatus(entry);
     }
 
     private void pauseDonwload(DownloadEntry entry) {

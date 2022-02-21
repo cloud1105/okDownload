@@ -2,7 +2,6 @@ package com.leo.test.ui;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +21,6 @@ import com.leo.test.R;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,9 +36,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogUtls.debug("onCreate");
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtls.debug("onResume");
         RecyclerView recyclerView = findViewById(R.id.downloadList);
         downloadEntryList = getDownloadList();
+        LogUtls.debug("get start");
+        for (int i = 0; i < downloadEntryList.size(); i++) {
+            DownloadEntry realEntry = DownloadManager.getInstance(this).queryDownloadEntry(
+                    downloadEntryList.get(i).getTaskId());
+            if (realEntry != null) {
+                downloadEntryList.remove(i);
+                downloadEntryList.add(i, realEntry);
+            }
+        }
+        LogUtls.debug("get over");
         adapter = new DownloadListAdapter(this, downloadEntryList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -57,18 +72,13 @@ public class MainActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
             }
         };
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        DownloadWatcher.getInstance().registerCallback(callback);
+        DownloadWatcher.getInstance(this).registerCallback(callback);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        DownloadWatcher.getInstance().unregisterCallback(callback);
+        DownloadWatcher.getInstance(this).unregisterCallback(callback);
     }
 
     @Override
@@ -83,10 +93,10 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             if (item.getTitle().equals("pause all")) {
                 item.setTitle("recover all");
-                DownloadManager.getInstance().pauseAll(this);
+                DownloadManager.getInstance(this).pauseAll();
             } else {
                 item.setTitle("pause all");
-                DownloadManager.getInstance().recoverAll(this);
+                DownloadManager.getInstance(this).recoverAll();
             }
             return true;
         }
@@ -97,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         // todo 从数据库或者网络获取数据
         List list = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            DownloadEntry entry = new DownloadEntry(UUID.randomUUID().toString(), "www.baidu.com", 0, 105400 + i * 100,
+            DownloadEntry entry = new DownloadEntry(i+"", "www.baidu.com", 0, 105400 + i * 100,
                     "FILE" + i, DownloadEntry.Status.IDLE);
             list.add(entry);
         }
@@ -107,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
     private class DownloadListAdapter extends RecyclerView.Adapter<DownloadListAdapter.ViewHolder> {
         private List<DownloadEntry> list;
         private Context context;
-        private long lastTime = 0L;
 
         public DownloadListAdapter(Context context, List list) {
             this.context = context;
@@ -149,34 +158,20 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
             holder.btnDownload.setOnClickListener(v -> {
-                if (shortClick()) {
-                    return;
-                }
                 switch (status) {
                     case DOWNLOADING:
                     case WAIT:
-                        DownloadManager.getInstance().pauseDownload(context, entry);
+                        DownloadManager.getInstance(MainActivity.this).pauseDownload(entry);
                         break;
                     case PAUSED:
-                        DownloadManager.getInstance().resumeDownload(context, entry);
+                        DownloadManager.getInstance(MainActivity.this).resumeDownload(entry);
                         break;
                     case IDLE:
                     default:
-                        DownloadManager.getInstance().startDownload(context, entry);
+                        DownloadManager.getInstance(MainActivity.this).startDownload(entry);
                         break;
                 }
             });
-        }
-
-        private boolean shortClick() {
-            long now = System.currentTimeMillis();
-            if ((now - lastTime) < Constants.ONE_MINUTE) {
-                Log.i(TAG, "shortClick return");
-                return true;
-            } else {
-                lastTime = now;
-                return false;
-            }
         }
 
         @Override

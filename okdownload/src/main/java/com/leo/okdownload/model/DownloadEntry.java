@@ -5,7 +5,6 @@ import java.io.Serializable;
 import androidx.annotation.Nullable;
 
 public class DownloadEntry implements Serializable {
-    private String id;
     private String url;
     private String taskId;
     private int currentSize;

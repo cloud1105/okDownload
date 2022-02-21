@@ -1,5 +1,8 @@
 package com.leo.okdownload;
 
+import android.content.Context;
+
+import com.leo.okdownload.db.DbController;
 import com.leo.okdownload.model.DownloadEntry;
 import com.leo.okdownload.util.LogUtls;
 
@@ -10,11 +13,17 @@ import java.util.Observable;
 
 public class DownloadWatcher extends Observable {
     private static DownloadWatcher watcher;
+    private Context context;
     private LinkedHashMap<String, DownloadEntry> map = new LinkedHashMap();
 
-    public static DownloadWatcher getInstance() {
+    public DownloadWatcher(Context context) {
+        this.context = context;
+    }
+
+
+    public static DownloadWatcher getInstance(Context context) {
         if (watcher == null) {
-            watcher = new DownloadWatcher();
+            watcher = new DownloadWatcher(context);
         }
         return watcher;
     }
@@ -22,6 +31,7 @@ public class DownloadWatcher extends Observable {
     public void updateDownloadStatus(DownloadEntry entry) {
         LogUtls.info("updateDownloadStatus status: " + entry.getStatus());
         map.put(entry.getTaskId(), entry);
+        DbController.getInstance(context).insertOrUpdate(entry.getTaskId(), entry);
         setChanged();
         notifyObservers(entry);
     }
@@ -36,9 +46,12 @@ public class DownloadWatcher extends Observable {
         return list;
     }
 
-    public void notifyThreadReject(DownloadTask task) {
-        setChanged();
-        notifyObservers(task);
+    public void putEntryMap(String taskId, DownloadEntry entry) {
+        map.put(taskId, entry);
+    }
+
+    public DownloadEntry queryDownloadEntry(String taskId) {
+        return map.get(taskId);
     }
 
     public void registerCallback(DownloadCallback callback) {
