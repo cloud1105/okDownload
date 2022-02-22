@@ -1,8 +1,5 @@
 package com.leo.okdownload.util;
 
-import com.leo.okdownload.DownloadWatcher;
-import com.leo.okdownload.DownloadTask;
-
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -19,9 +16,6 @@ public class TaskPool {
     private TaskPool() {
         executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(10), (runnable, threadPoolExecutor) -> {
-                    if (runnable instanceof DownloadTask) {
-                        DownloadWatcher.getInstance().notifyThreadReject((DownloadTask) runnable);
-                    }
                 });
     }
 

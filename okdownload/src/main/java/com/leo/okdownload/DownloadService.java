@@ -12,6 +12,7 @@ import com.leo.okdownload.constant.Constants;
 import com.leo.okdownload.model.DownloadEntry;
 import com.leo.okdownload.util.LogUtls;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
@@ -21,7 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class DownloadService extends Service {
-    private Map<String, DownloadTask> taskSparseArray = new HashMap<>();
+    private Map<String, DownloadTask> downloadTaskMap = new HashMap<>();
     private BlockingDeque<DownloadEntry> waitingDeque = new LinkedBlockingDeque<>();
 
     private Handler handler = new Handler(Looper.getMainLooper()) {
@@ -42,7 +43,7 @@ public class DownloadService extends Service {
                 default:
                     break;
             }
-            DownloadWatcher.getInstance().updateDownloadStatus(entry);
+            DownloadWatcher.getInstance(DownloadService.this).updateDownloadStatus(entry);
         }
     };
 
@@ -71,8 +72,34 @@ public class DownloadService extends Service {
             case Constants.RESUME_DOWNLOAD:
                 resumeDownload(entry);
                 break;
+            case Constants.RECOVER_ALL:
+                recoverAll();
+                break;
+            case Constants.PAUSE_ALL:
+                pauseAll();
+                break;
             default:
                 break;
+        }
+    }
+
+    private void pauseAll() {
+        while (waitingDeque.iterator().hasNext()) {
+            DownloadEntry entry = waitingDeque.poll();
+            if (entry != null) {
+                changeDownloadStatus(entry, DownloadEntry.Status.PAUSED);
+            }
+        }
+        for(Map.Entry<String, DownloadTask> entry: downloadTaskMap.entrySet()){
+            entry.getValue().pauseDownload();
+        }
+        downloadTaskMap.clear();
+    }
+
+    private void recoverAll() {
+        ArrayList<DownloadEntry> arrayList = DownloadWatcher.getInstance(this).queryAllRecoverableEntries();
+        for (DownloadEntry entry : arrayList) {
+            startDownload(entry);
         }
     }
 
@@ -81,37 +108,39 @@ public class DownloadService extends Service {
     }
 
     private void cancelDownload(DownloadEntry entry) {
-        DownloadTask task = taskSparseArray.remove(entry.getTaskId());
+        DownloadTask task = downloadTaskMap.remove(entry.getTaskId());
         if (task != null) {
             task.cancelDownload();
         } else {
-            entry.setStatus(DownloadEntry.Status.CANCELED);
-            DownloadWatcher.getInstance().updateDownloadStatus(entry);
+            changeDownloadStatus(entry, DownloadEntry.Status.CANCELED);
         }
         waitingDeque.remove(entry);
     }
 
+    private void changeDownloadStatus(DownloadEntry entry, DownloadEntry.Status status) {
+        entry.setStatus(status);
+        DownloadWatcher.getInstance(this).updateDownloadStatus(entry);
+    }
+
     private void pauseDonwload(DownloadEntry entry) {
-        DownloadTask task = taskSparseArray.remove(entry.getTaskId());
+        DownloadTask task = downloadTaskMap.remove(entry.getTaskId());
         if (task != null) {
             task.pauseDownload();
         } else {
-            entry.setStatus(DownloadEntry.Status.PAUSED);
-            DownloadWatcher.getInstance().updateDownloadStatus(entry);
+            changeDownloadStatus(entry, DownloadEntry.Status.PAUSED);
         }
         waitingDeque.remove(entry);
     }
 
     private void startDownload(DownloadEntry entry) {
-        if (taskSparseArray.size() >= Constants.MAX_DOWNLOAD_THREAD_SIZE) {
+        if (downloadTaskMap.size() >= Constants.MAX_DOWNLOAD_THREAD_SIZE) {
             waitingDeque.offer(entry);
-            entry.setStatus(DownloadEntry.Status.WAIT);
-            DownloadWatcher.getInstance().updateDownloadStatus(entry);
+            changeDownloadStatus(entry, DownloadEntry.Status.WAIT);
         } else {
             waitingDeque.remove(entry);
             DownloadTask task = new DownloadTask(entry, handler);
             task.addDownload();
-            taskSparseArray.put(entry.getTaskId(), task);
+            downloadTaskMap.put(entry.getTaskId(), task);
         }
     }
 
