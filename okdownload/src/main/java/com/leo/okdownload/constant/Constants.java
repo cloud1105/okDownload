@@ -9,4 +9,6 @@ public class Constants {
     public static final int MAX_DOWNLOAD_THREAD_SIZE = 3;
     public static final String RECOVER_ALL = "recover_all";
     public static final String PAUSE_ALL = "pause_all";
+    public static final int CONNECT_TIMEOUT = 5000;
+    public static final int READ_TIMEOUT = 5000;
 }

@@ -1,6 +1,7 @@
 package com.leo.okdownload.model;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 import androidx.annotation.Nullable;
 
@@ -11,14 +12,23 @@ public class DownloadEntry implements Serializable {
     private int totalSize;
     private String fileName;
     private Status status;
+    private int percent;
+    private boolean isSupportRange;
+    // 每一段线程下载的进度 key：线程的index  value：进度
+    public HashMap<Integer, Integer> ranges;
 
-    public DownloadEntry(String taskId,String url, int currentSize, int totalSize, String fileName, Status status) {
+    public DownloadEntry(String taskId, String url, int currentSize, int totalSize, String fileName, Status status) {
         this.url = url;
         this.taskId = taskId;
         this.currentSize = currentSize;
         this.totalSize = totalSize;
         this.fileName = fileName;
         this.status = status;
+    }
+
+    public DownloadEntry(String url, String fileName) {
+        this.url = url;
+        this.fileName = fileName;
     }
 
     public Status getStatus() {
@@ -69,18 +79,44 @@ public class DownloadEntry implements Serializable {
         this.url = url;
     }
 
+    public int getPercent() {
+        return percent;
+    }
+
+    public void setPercent(int percent) {
+        this.percent = percent;
+    }
+
+    public HashMap<Integer, Integer> getRanges() {
+        return ranges;
+    }
+
+    public void setRanges(HashMap<Integer, Integer> ranges) {
+        this.ranges = ranges;
+    }
+
+    public boolean isSupportRange() {
+        return isSupportRange;
+    }
+
+    public void setSupportRange(boolean supportRange) {
+        isSupportRange = supportRange;
+    }
+
     public enum Status {
         IDLE,
         WAIT,
         DOWNLOADING,
         PAUSED,
         COMPLETED,
-        CANCELED;
+        CANCELED,
+        CONNECTING,
+        ERROR;
     }
 
     @Override
     public int hashCode() {
-        return taskId.hashCode();
+        return url.hashCode();
     }
 
     @Override
@@ -88,7 +124,18 @@ public class DownloadEntry implements Serializable {
         if (!(obj instanceof DownloadEntry)) {
             return false;
         } else {
-            return taskId.equals(((DownloadEntry) obj).getTaskId());
+            return url.equals(((DownloadEntry) obj).getUrl());
         }
+    }
+
+    @Override
+    public String toString() {
+        return "DownloadEntry{" +
+                ", taskId='" + taskId + '\'' +
+                ", currentSize=" + currentSize +
+                ", totalSize=" + totalSize +
+                ", fileName='" + fileName + '\'' +
+                ", status=" + status +
+                '}';
     }
 }

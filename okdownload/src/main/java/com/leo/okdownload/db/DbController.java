@@ -5,10 +5,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.leo.okdownload.model.DownloadEntry;
 import com.leo.okdownload.util.LogUtls;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DbController {
     public static final String TASK_ID = "taskid";
@@ -20,6 +24,9 @@ public class DbController {
     public static final String _ID = "id";
     private static final int DB_VERSION = 1;
     private static final String TABLE_NAME = "downloads";
+    private static final String PERCENT = "percent";
+    private static final String IS_SUPPORTRANGE = "isSupportRange";
+    private static final String RANGES = "ranges";
     private DownloadDbHelper helper;
     private static DbController instance;
 
@@ -44,6 +51,11 @@ public class DbController {
         initialValues.put(TOTAL_SIZE, entry.getTotalSize());
         initialValues.put(FILE_NAME, entry.getFileName());
         initialValues.put(STATUS, String.valueOf(entry.getStatus()));
+        initialValues.put(PERCENT,String.valueOf(entry.getPercent()));
+        initialValues.put(IS_SUPPORTRANGE,entry.isSupportRange());
+        Gson gson = new Gson();
+        String rangesJson = gson.toJson(entry.getRanges());
+        initialValues.put(RANGES,rangesJson);
         int id = (int) writableDatabase.insertWithOnConflict(TABLE_NAME, null,
                 initialValues, SQLiteDatabase.CONFLICT_IGNORE);
         if (id == -1) {
@@ -63,22 +75,12 @@ public class DbController {
         contentValues.put(TOTAL_SIZE, entry.getTotalSize());
         contentValues.put(FILE_NAME, entry.getFileName());
         contentValues.put(STATUS, String.valueOf(entry.getStatus()));
+        contentValues.put(PERCENT,String.valueOf(entry.getPercent()));
+        contentValues.put(IS_SUPPORTRANGE,entry.isSupportRange());
+        Gson gson = new Gson();
+        String rangesJson = gson.toJson(entry.getRanges());
+        contentValues.put(RANGES,rangesJson);
         writableDatabase.insertOrThrow(TABLE_NAME, null, contentValues);
-        writableDatabase.setTransactionSuccessful();
-    }
-
-    public void update(DownloadEntry entry) {
-        SQLiteDatabase writableDatabase = helper.getWritableDatabase();
-        writableDatabase.beginTransaction();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(TASK_ID, entry.getTaskId());
-        contentValues.put(URL, entry.getUrl());
-        contentValues.put(CURRENT_SIZE, entry.getCurrentSize());
-        contentValues.put(TOTAL_SIZE, entry.getTotalSize());
-        contentValues.put(FILE_NAME, entry.getFileName());
-        contentValues.put(STATUS, String.valueOf(entry.getStatus()));
-        writableDatabase.update(TABLE_NAME, contentValues, TASK_ID + " = ?",
-                new String[]{entry.getTaskId()});
         writableDatabase.setTransactionSuccessful();
     }
 
@@ -100,28 +102,21 @@ public class DbController {
                 int currentSize = cursor.getInt(cursor.getColumnIndex(CURRENT_SIZE));
                 int totalSize = cursor.getInt(cursor.getColumnIndex(TOTAL_SIZE));
                 String fileName = cursor.getString(cursor.getColumnIndex(FILE_NAME));
+                int percent = cursor.getInt(cursor.getColumnIndex(PERCENT));
+                boolean isSupportRange = "1".equals(cursor.getString(cursor.getColumnIndex(IS_SUPPORTRANGE)));
+                String rangesJson = cursor.getString(cursor.getColumnIndex(RANGES));
+                Type type = new TypeToken<HashMap<Integer,Integer>>() {}.getType();
+                Gson gson = new Gson();
+                HashMap<Integer,Integer> ranges = gson.fromJson(rangesJson, type);
                 DownloadEntry.Status status = DownloadEntry.Status.valueOf(cursor.getString(cursor.getColumnIndex(STATUS)));
                 DownloadEntry entry = new DownloadEntry(taskId, url, currentSize, totalSize, fileName, status);
+                entry.setPercent(percent);
+                entry.setRanges(ranges);
+                entry.setSupportRange(isSupportRange);
                 list.add(entry);
             }
         }
         return list;
-    }
-
-    public DownloadEntry query(String taskId) {
-        SQLiteDatabase readableDatabase = helper.getReadableDatabase();
-        DownloadEntry entry = null;
-        try (Cursor cursor = readableDatabase.rawQuery("select * from " + TABLE_NAME + " where " + TASK_ID + " = ?", new String[]{taskId})) {
-            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-                String url = cursor.getString(cursor.getColumnIndex(URL));
-                int currentSize = cursor.getInt(cursor.getColumnIndex(CURRENT_SIZE));
-                int totalSize = cursor.getInt(cursor.getColumnIndex(TOTAL_SIZE));
-                String fileName = cursor.getString(cursor.getColumnIndex(FILE_NAME));
-                DownloadEntry.Status status = DownloadEntry.Status.valueOf(cursor.getString(cursor.getColumnIndex(STATUS)));
-                entry = new DownloadEntry(taskId, url, currentSize, totalSize, fileName, status);
-            }
-        }
-        return entry;
     }
 
     public static void createTable(SQLiteDatabase db) {
@@ -131,7 +126,10 @@ public class DbController {
                 "\t" + CURRENT_SIZE + " INTEGER ,\n" +
                 "\t" + TOTAL_SIZE + " INTEGER,\n" +
                 "\t" + FILE_NAME + " VARCHAR(128),\n" +
-                "\t" + STATUS + " VARCHAR(512) \n" +
+                "\t" + STATUS + " VARCHAR(512) ,\n" +
+                "\t" + RANGES + " VARCHAR(512) ,\n" +
+                "\t" + IS_SUPPORTRANGE + " VARCHAR(128),\n" +
+                "\t" + PERCENT + " INTEGER \n" +
                 ")";
 
         try{

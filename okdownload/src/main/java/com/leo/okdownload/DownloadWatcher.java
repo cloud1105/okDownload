@@ -28,7 +28,7 @@ public class DownloadWatcher extends Observable {
         return watcher;
     }
 
-    public void updateDownloadStatus(DownloadEntry entry) {
+    public void notify(DownloadEntry entry) {
         LogUtls.info("updateDownloadStatus status: " + entry.getStatus());
         map.put(entry.getTaskId(), entry);
         DbController.getInstance(context).insertOrUpdate(entry.getTaskId(), entry);

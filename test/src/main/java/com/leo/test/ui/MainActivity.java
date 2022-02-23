@@ -107,8 +107,7 @@ public class MainActivity extends AppCompatActivity {
         // todo 从数据库或者网络获取数据
         List list = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            DownloadEntry entry = new DownloadEntry(i+"", "www.baidu.com", 0, 105400 + i * 100,
-                    "FILE" + i, DownloadEntry.Status.IDLE);
+            DownloadEntry entry = new DownloadEntry("www.baidu.com","File"+i);
             list.add(entry);
         }
         return list;

@@ -7,10 +7,10 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.leo.okdownload.constant.Constants;
 import com.leo.okdownload.model.DownloadEntry;
-import com.leo.okdownload.util.LogUtls;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,22 +28,27 @@ public class DownloadService extends Service {
     private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            LogUtls.debug("receive msg");
             DownloadEntry entry = (DownloadEntry) msg.obj;
-            LogUtls.debug("id:" + entry.getTaskId());
             switch (entry.getStatus()) {
                 case PAUSED:
                 case CANCELED:
                 case COMPLETED:
-                    DownloadEntry newEntry = waitingDeque.poll();
-                    if (newEntry != null) {
-                        startDownload(newEntry);
-                    }
+                    checkNextToDownload();
+                    break;
+                case ERROR:
+                    Toast.makeText(getApplicationContext(),"下载异常",Toast.LENGTH_LONG).show();
                     break;
                 default:
                     break;
             }
-            DownloadWatcher.getInstance(DownloadService.this).updateDownloadStatus(entry);
+            DownloadWatcher.getInstance(DownloadService.this).notify(entry);
+        }
+
+        private void checkNextToDownload() {
+            DownloadEntry newEntry = waitingDeque.poll();
+            if (newEntry != null) {
+                startDownload(newEntry);
+            }
         }
     };
 
@@ -87,7 +92,7 @@ public class DownloadService extends Service {
         while (waitingDeque.iterator().hasNext()) {
             DownloadEntry entry = waitingDeque.poll();
             if (entry != null) {
-                changeDownloadStatus(entry, DownloadEntry.Status.PAUSED);
+                notifyStatus(entry, DownloadEntry.Status.PAUSED);
             }
         }
         for(Map.Entry<String, DownloadTask> entry: downloadTaskMap.entrySet()){
@@ -112,14 +117,14 @@ public class DownloadService extends Service {
         if (task != null) {
             task.cancelDownload();
         } else {
-            changeDownloadStatus(entry, DownloadEntry.Status.CANCELED);
+            notifyStatus(entry, DownloadEntry.Status.CANCELED);
         }
         waitingDeque.remove(entry);
     }
 
-    private void changeDownloadStatus(DownloadEntry entry, DownloadEntry.Status status) {
+    private void notifyStatus(DownloadEntry entry, DownloadEntry.Status status) {
         entry.setStatus(status);
-        DownloadWatcher.getInstance(this).updateDownloadStatus(entry);
+        DownloadWatcher.getInstance(this).notify(entry);
     }
 
     private void pauseDonwload(DownloadEntry entry) {
@@ -127,7 +132,7 @@ public class DownloadService extends Service {
         if (task != null) {
             task.pauseDownload();
         } else {
-            changeDownloadStatus(entry, DownloadEntry.Status.PAUSED);
+            notifyStatus(entry, DownloadEntry.Status.PAUSED);
         }
         waitingDeque.remove(entry);
     }
@@ -135,7 +140,7 @@ public class DownloadService extends Service {
     private void startDownload(DownloadEntry entry) {
         if (downloadTaskMap.size() >= Constants.MAX_DOWNLOAD_THREAD_SIZE) {
             waitingDeque.offer(entry);
-            changeDownloadStatus(entry, DownloadEntry.Status.WAIT);
+            notifyStatus(entry, DownloadEntry.Status.WAIT);
         } else {
             waitingDeque.remove(entry);
             DownloadTask task = new DownloadTask(entry, handler);
