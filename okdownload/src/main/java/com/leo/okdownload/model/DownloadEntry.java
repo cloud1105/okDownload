@@ -103,6 +103,10 @@ public class DownloadEntry implements Serializable {
         isSupportRange = supportRange;
     }
 
+    public void reset() {
+        //todo 清除下载数据
+    }
+
     public enum Status {
         IDLE,
         WAIT,

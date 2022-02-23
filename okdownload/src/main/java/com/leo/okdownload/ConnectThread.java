@@ -11,6 +11,7 @@ import java.net.URL;
 public class ConnectThread implements Runnable {
     private String url;
     private ConnectListener listener;
+    private boolean isRunning;
 
     public ConnectThread(String url, ConnectListener listener) {
         this.url = url;
@@ -19,6 +20,7 @@ public class ConnectThread implements Runnable {
 
     @Override
     public void run() {
+        isRunning = true;
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) new URL(url).openConnection();
@@ -37,10 +39,12 @@ public class ConnectThread implements Runnable {
                 }
                 listener.onConnected(isSupportRange, contentLength);
             } else {
-                listener.onError("server error:" + responseCode);
+                listener.onConnectFailed("server error:" + responseCode);
             }
+            isRunning = false;
         } catch (IOException e) {
-            listener.onError(e.getMessage());
+            listener.onConnectFailed(e.getMessage());
+            isRunning = false;
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -48,9 +52,17 @@ public class ConnectThread implements Runnable {
         }
     }
 
+    public boolean isRunning() {
+      return isRunning;
+    }
+
+    public void cancel() {
+      Thread.currentThread().interrupt();
+    }
+
     public interface ConnectListener {
         void onConnected(boolean isSupportRange, int contentLength);
 
-        void onError(String message);
+        void onConnectFailed(String message);
     }
 }
