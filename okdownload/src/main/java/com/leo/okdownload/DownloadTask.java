@@ -202,7 +202,7 @@ public class DownloadTask implements ConnectThread.ConnectListener, DownloadThre
         // 超过1s才更新UX进度
         if (stamp - lastStamp > 1000) {
             lastStamp = stamp;
-            int percent = (int) (entry.getCurrentSize() * 100l / entry.getTotalSize());
+            int percent = (int) (entry.getCurrentSize() * 100L / entry.getTotalSize());
             entry.setPercent(percent);
             notify(entry);
         }
