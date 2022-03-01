@@ -1,4 +1,4 @@
-package com.leo.okdownload;
+package com.leo.okdownload.core;
 
 import android.os.Handler;
 import android.os.Message;

@@ -1,4 +1,4 @@
-package com.leo.okdownload;
+package com.leo.okdownload.core;
 
 import android.app.Service;
 import android.content.Intent;

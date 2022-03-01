@@ -1,4 +1,4 @@
-package com.leo.okdownload;
+package com.leo.okdownload.core;
 
 import android.content.Context;
 
@@ -13,8 +13,8 @@ import java.util.Observable;
 
 public class DownloadWatcher extends Observable {
     private static DownloadWatcher watcher;
-    private Context context;
-    private LinkedHashMap<String, DownloadEntry> map = new LinkedHashMap();
+    private final Context context;
+    private final LinkedHashMap<String, DownloadEntry> map = new LinkedHashMap<>();
 
     public DownloadWatcher(Context context) {
         this.context = context;

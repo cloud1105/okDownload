@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import com.leo.okdownload.DownloadCallback;
-import com.leo.okdownload.DownloadManager;
-import com.leo.okdownload.DownloadWatcher;
+import com.leo.okdownload.core.DownloadCallback;
+import com.leo.okdownload.core.DownloadManager;
+import com.leo.okdownload.core.DownloadWatcher;
 import com.leo.okdownload.model.DownloadEntry;
 import com.leo.test.R;
 

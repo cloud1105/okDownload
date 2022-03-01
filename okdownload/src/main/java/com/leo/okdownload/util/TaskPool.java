@@ -2,6 +2,7 @@ package com.leo.okdownload.util;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,7 @@ public class TaskPool {
 
     private TaskPool() {
         executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(10), (runnable, threadPoolExecutor) -> {
+                new ArrayBlockingQueue<>(10), new CustomThreadFactory("ok-download"),(runnable, threadPoolExecutor) -> {
                 });
     }
 

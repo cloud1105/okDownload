@@ -11,9 +11,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.leo.okdownload.DownloadCallback;
-import com.leo.okdownload.DownloadManager;
-import com.leo.okdownload.DownloadWatcher;
+import com.leo.okdownload.core.DownloadCallback;
+import com.leo.okdownload.core.DownloadManager;
+import com.leo.okdownload.core.DownloadWatcher;
 import com.leo.okdownload.model.DownloadEntry;
 import com.leo.okdownload.util.LogUtls;
 import com.leo.test.R;

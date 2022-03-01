@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OkDownload">
 
-        <service android:name=".DownloadService" />
+        <service android:name=".core.DownloadService" />
     </application>
 
 </manifest>
